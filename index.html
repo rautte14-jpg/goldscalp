@@ -15,7 +15,7 @@ function save(){localStorage.setItem(KEY,JSON.stringify(s))}
 function ema(values,n){let k=2/(n+1),v=values[0];for(let x of values.slice(1))v=x*k+v*(1-k);return v}
 function rsi(values){let ups=0,downs=0,v=values.slice(-15);for(let i=1;i<v.length;i++){let d=v[i]-v[i-1];ups+=Math.max(d,0);downs+=Math.max(-d,0)}return downs===0?(ups===0?50:100):100-100/(1+ups/downs)}
 function sig(){let a=ema(s.candles.slice(-45),9),b=ema(s.candles.slice(-45),21),r=rsi(s.candles);return {type:a>b&&r>50&&r<85?'BUY':a<b&&r<50&&r>15?'SELL':'WAIT',r}}
-function usd(x){if(!Number.isFinite(x))return '—';return (x<0?'-
+function usd(x){if(!Number.isFinite(x))return 'N/A';return (x<0?'-':'')+'$'+Math.abs(x).toFixed(Math.abs(x)<0.01&&x!==0?5:2)}
 function marketPnl(){if(!s.position)return 0;let p=s.position;let spread=Number($('spread').value)||0;return (s.price-p.entry)*(p.side==='BUY'?1:-1)*p.ounces - (spread/2+.05)*p.ounces}
 function close(reason,exitOverride){if(!s.position)return;let p=s.position;let exit=exitOverride??s.price,profit=(exit-p.entry)*(p.side==='BUY'?1:-1)*p.ounces-(Number($('spread').value)/2+.05)*p.ounces;s.balance+=profit;if(profit<0)s.dayLoss+=-profit;s.history.unshift({side:p.side,entry:p.entry,exit,profit,cost:(Number($('spread').value)/2+.05)*p.ounces,reason,at:new Date().toISOString()});s.position=null;s.peak=Math.max(s.peak,s.balance);if(s.dayLoss>=3&&timer){clearInterval(timer);timer=null;autoTrading=false;$('auto').textContent='Auto trades: OFF (loss limit)'}save();render()}
 let autoTrading=false,barCount=0,lastCloseBar=-999;let skipped=0;let lastReason='Waiting for a qualifying signal';
